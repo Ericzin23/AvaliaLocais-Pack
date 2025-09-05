@@ -1,0 +1,2 @@
+-- Tabelas essenciais serão criadas pelo Hibernate (ddl-auto=update).
+-- Use este arquivo se quiser criar manualmente. Mantido como referência.
