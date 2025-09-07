@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://192.168.5.52:8080', // confirme o IP que o app usa
+  baseURL: 'http://192.168.0.109:8080', // confirme o IP que o app usa
   timeout: 15000,
 });
 
