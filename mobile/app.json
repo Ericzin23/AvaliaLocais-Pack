@@ -16,14 +16,29 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+  "sdkVersion": "54.0.0",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Precisamos acessar sua localização para encontrar locais próximos.",
+        "NSCameraUsageDescription": "Precisa acessar a câmera para enviar imagens ao criar avaliações.",
+        "NSPhotoLibraryAddUsageDescription": "Precisamos salvar imagens no seu álbum.",
+        "NSUserTrackingUsageDescription": "Usamos seu identificador para melhorar a experiência.",
+        "UIBackgroundModes": ["location"]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0b0b0f"
-      }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
