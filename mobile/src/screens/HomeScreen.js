@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { API } from '../services/api';
 import { theme } from '../theme';
@@ -12,6 +13,7 @@ const CATS = [
 export default function HomeScreen({ navigation }){
   const [cat, setCat] = useState('restaurante');
   const [items, setItems] = useState([]);
+  const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
 
   async function fetchNearby(category, useRadius) {
@@ -52,6 +54,18 @@ export default function HomeScreen({ navigation }){
 
       console.log("Results extraídos:", results.length, results);
       setItems(results);
+
+      const normalized = (results || []).map((p) => ({
+        id: p.place_id,
+        name: p.name,
+        lat: p.geometry?.location?.lat,
+        lng: p.geometry?.location?.lng,
+        rating: p.rating,
+        total: p.user_ratings_total,
+        vicinity: p.vicinity,
+        types: p.types || [],
+      }));
+      setPlaces(normalized);
     } catch (e) {
       console.log('Erro Nearby:', {
         message: e?.message,
@@ -95,9 +109,31 @@ export default function HomeScreen({ navigation }){
         <Text style={s.empty}>Nenhum resultado por perto. Tente outra categoria.</Text>
       ) : null}
 
+      {/* Map */}
+      <View style={{ height: 240, marginBottom: 12 }}>
+        <MapView style={{ flex: 1 }} initialRegion={{
+          latitude: items[0]?.geometry?.location?.lat || -11.860,
+          longitude: items[0]?.geometry?.location?.lng || -55.510,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }}>
+          {places.map((it) =>
+            typeof it.lat === 'number' && typeof it.lng === 'number' ? (
+              <Marker
+                key={it.id}
+                coordinate={{ latitude: it.lat, longitude: it.lng }}
+                title={it.name}
+                description={it.vicinity || ''}
+              />
+            ) : null
+          )}
+        </MapView>
+      </View>
+
+      {/* List */}
       <FlatList
-        data={items}
-        keyExtractor={(item, i) => item.place_id || String(i)}
+        data={places}
+        keyExtractor={(item) => item.id}
         refreshing={loading}
         onRefresh={() => fetchNearby(cat, 0)}
         renderItem={({ item }) => (
@@ -107,6 +143,7 @@ export default function HomeScreen({ navigation }){
           >
             <Text style={s.cardTitle}>{item.name}</Text>
             <Text style={s.cardSub}>{item.vicinity}</Text>
+            {item.rating ? <Text>⭐ {item.rating} ({item.total})</Text> : null}
           </TouchableOpacity>
         )}
       />
