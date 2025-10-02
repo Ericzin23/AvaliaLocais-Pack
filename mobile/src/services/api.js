@@ -1,18 +1,18 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://192.168.0.109:8080', // confirme o IP que o app usa
+export const API = axios.create({
+  baseURL: 'http://192.168.0.127:8080', // IP do seu PC
   timeout: 15000,
 });
 
 export async function login(email, senha) {
-  const { data } = await api.post('/auth/login', { email, senha });
+  const { data } = await API.post('/auth/login', { email, senha });
   return data;
 }
 
 export async function register(payload) {
-  const { data } = await api.post('/auth/register', payload);
+  const { data } = await API.post('/auth/register', payload);
   return data;
 }
 
-export default api;
+export default API;

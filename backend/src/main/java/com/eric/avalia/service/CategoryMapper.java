@@ -46,8 +46,16 @@ public class CategoryMapper {
     public static Category resolve(String raw) {
         if (raw == null) return new Category("restaurant", null);
         String k = raw.toLowerCase(Locale.ROOT).trim();
+        // tentativa de correspondência exata
         Category c = MAP.get(k);
         if (c != null) return c;
+        // verificar palavras-chave/sinônimos (armazenados como regex ou alternation)
+        for (Map.Entry<String, Category> e : MAP.entrySet()) {
+            Category cat = e.getValue();
+            if (cat.keyword != null && k.matches(cat.keyword)) {
+                return new Category(cat.type, cat.keyword);
+            }
+        }
         // Se vier um type inglês válido, deixamos passar
         if (k.matches("[a-z_]+")) return new Category(k, null);
         // fallback
