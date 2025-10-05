@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const API = axios.create({
-  baseURL: 'http://192.168.0.127:8080', // IP do seu PC
+  baseURL: 'http://20.20.20.29:8080', // IP do seu PC
   timeout: 15000,
 });
 
