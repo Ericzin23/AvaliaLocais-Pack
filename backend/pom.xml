@@ -9,7 +9,7 @@
   <name>AvaliaLocais Backend</name>
   <properties>
     <java.version>21</java.version>
-    <spring.boot.version>3.3.2</spring.boot.version>
+    <spring.boot.version>3.5.0</spring.boot.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
   </properties>
   <dependencyManagement>
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>2.5.0</version>
+      <version>2.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -78,10 +78,12 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring.boot.version}</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>

@@ -2,6 +2,7 @@ package com.eric.avalia.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,7 @@ public class GooglePlacesService {
                 safeType = type.split(",")[0].trim();
             }
             // Construir URL com UriComponentsBuilder (encode=true no build)
-            UriComponentsBuilder b = UriComponentsBuilder.fromHttpUrl("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
+            UriComponentsBuilder b = UriComponentsBuilder.fromUriString("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
                 .queryParam("location", loc)
                 .queryParam("language", "pt-BR")
                 .queryParam("key", apiKey);
