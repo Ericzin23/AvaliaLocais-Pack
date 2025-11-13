@@ -30,7 +30,7 @@ export default function App(){
         <Stack.Screen name="Login" component={LoginScreen} options={{headerShown:false}} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{title:'Criar conta'}} />
         <Stack.Screen name="Main" component={TabsNav} options={{headerShown:false}} />
-        <Stack.Screen name="Details" component={DetailsScreen} options={{title:'Detalhes do Local'}} />
+        <Stack.Screen name="Details" component={DetailsScreen} options={{headerShown:false}} />
         <Stack.Screen name="Review" component={ReviewScreen} options={{title:'Avaliar'}} />
         <Stack.Screen name="Share" component={ShareScreen} options={{title:'Compartilhar'}} />
       </Stack.Navigator>
