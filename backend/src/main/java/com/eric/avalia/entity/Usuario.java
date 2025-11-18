@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity @Table(name="usuario")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
@@ -29,4 +31,17 @@ public class Usuario {
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+
+    // Relacionamentos bidirecionais para garantir integridade referencial
+    @OneToMany(mappedBy="usuario", cascade=CascadeType.ALL, orphanRemoval=true)
+    @Builder.Default
+    private List<Avaliacao> avaliacoes = new ArrayList<>();
+
+    @OneToMany(mappedBy="usuario", cascade=CascadeType.ALL, orphanRemoval=true)
+    @Builder.Default
+    private List<Visita> visitas = new ArrayList<>();
+
+    @OneToMany(mappedBy="usuario", cascade=CascadeType.ALL, orphanRemoval=true)
+    @Builder.Default
+    private List<Relatorio> relatorios = new ArrayList<>();
 }

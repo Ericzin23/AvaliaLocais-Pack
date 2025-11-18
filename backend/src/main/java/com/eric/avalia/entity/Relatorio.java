@@ -10,6 +10,9 @@ public class Relatorio {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(optional=false) @JoinColumn(name="usuario_id")
+    private Usuario usuario;
+
     @Enumerated(EnumType.STRING)
     private Periodo periodo; // SEMANA, FDS
 

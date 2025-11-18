@@ -7,6 +7,6 @@ public record RegisterRequest(
     @NotBlank String nome,
     @Email String email,
     @NotBlank String senha,
-    @NotNull LocalDate dataNascimento,
+    LocalDate dataNascimento, // Opcional - não mais @NotNull
     String genero
 ) {}

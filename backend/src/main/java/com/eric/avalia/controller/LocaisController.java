@@ -8,11 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/locais")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class LocaisController {
     private final GooglePlacesService placesService;
     private final LocalPlaceRepository localRepo;
@@ -26,6 +28,29 @@ public class LocaisController {
         String type = CategoriaMapper.map(categoria);
         JsonNode result = placesService.nearby(lat, lng, type, radius);
         return ResponseEntity.ok(result); // devolve JSON válido, não string
+    }
+
+    @PostMapping
+    public ResponseEntity<?> criarOuBuscar(@RequestBody LocalPlace req) {
+        // Buscar por googlePlaceId primeiro para evitar duplicatas
+        LocalPlace existing = localRepo.findByGooglePlaceId(req.getGooglePlaceId()).orElse(null);
+        if (existing != null) {
+            return ResponseEntity.ok(existing);
+        }
+
+        // Criar novo local
+        LocalPlace novoLocal = LocalPlace.builder()
+                .googlePlaceId(req.getGooglePlaceId())
+                .nome(req.getNome())
+                .endereco(req.getEndereco())
+                .lat(req.getLat())
+                .lng(req.getLng())
+                .categoria(req.getCategoria())
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(localRepo.save(novoLocal));
     }
 
     @GetMapping("/{id}")

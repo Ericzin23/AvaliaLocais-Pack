@@ -25,6 +25,7 @@ public class Voxme {
         }
     }
 
+    @SuppressWarnings("null")
     public String buscarLocaisProximos(double lat, double lng, int radius, String categoria) {
         CategoryMapper.Category cat = CategoryMapper.resolve(categoria);
 
@@ -45,6 +46,7 @@ public class Voxme {
             url.append("&keyword=").append(CategoryMapper.encode(cat.keyword));
         }
 
-        return restTemplate.getForObject(url.toString(), String.class);
+        String result = restTemplate.getForObject(url.toString(), String.class);
+        return result != null ? result : "{}";
     }
 }

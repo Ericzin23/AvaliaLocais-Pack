@@ -13,7 +13,9 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ReportService {
     private final AvaliacaoRepository avaliacaoRepository;
     private final RelatorioRepository relatorioRepository;

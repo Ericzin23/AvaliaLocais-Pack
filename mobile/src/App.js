@@ -28,11 +28,11 @@ export default function App(){
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} options={{headerShown:false}} />
-        <Stack.Screen name="Register" component={RegisterScreen} options={{title:'Criar conta'}} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown:false}} />
         <Stack.Screen name="Main" component={TabsNav} options={{headerShown:false}} />
         <Stack.Screen name="Details" component={DetailsScreen} options={{headerShown:false}} />
-        <Stack.Screen name="Review" component={ReviewScreen} options={{title:'Avaliar'}} />
-        <Stack.Screen name="Share" component={ShareScreen} options={{title:'Compartilhar'}} />
+        <Stack.Screen name="Review" component={ReviewScreen} options={{headerShown:false}} />
+        <Stack.Screen name="Share" component={ShareScreen} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

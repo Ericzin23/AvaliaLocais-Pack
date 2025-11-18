@@ -1,5 +1,6 @@
 package com.eric.avalia.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.OffsetDateTime;
@@ -10,10 +11,13 @@ public class Visita {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional=false) @JoinColumn(name="usuario_id")
+    @ManyToOne(optional=false, fetch=FetchType.LAZY)
+    @JoinColumn(name="usuario_id", nullable=false)
+    @JsonIgnoreProperties({"avaliacoes", "visitas", "relatorios", "senhaHash"})
     private Usuario usuario;
 
-    @ManyToOne(optional=false) @JoinColumn(name="local_id")
+    @ManyToOne(optional=false, fetch=FetchType.LAZY)
+    @JoinColumn(name="local_id", nullable=false)
     private LocalPlace local;
 
     private OffsetDateTime checkinAt;

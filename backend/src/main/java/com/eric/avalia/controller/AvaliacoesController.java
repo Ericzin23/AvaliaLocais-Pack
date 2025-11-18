@@ -19,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/avaliacoes")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class AvaliacoesController {
     private final AvaliacaoRepository repo;
     private final UsuarioRepository usuarioRepo;
@@ -27,8 +28,17 @@ public class AvaliacoesController {
     @PostMapping
     public ResponseEntity<?> criar(@Valid @RequestBody ReviewRequest req,
                                    @RequestHeader("X-User-Email") String email) {
-        Usuario u = usuarioRepo.findByEmail(email).orElse(null);
-        if (u == null) return ResponseEntity.status(401).body("Usuário não autenticado");
+        // Buscar ou criar usuário demo
+        Usuario u = usuarioRepo.findByEmail(email).orElseGet(() -> {
+            Usuario novoUsuario = Usuario.builder()
+                    .email(email)
+                    .nome("Usuário Demo")
+                    .senhaHash("demo123") // senha simples para demo
+                    .createdAt(OffsetDateTime.now())
+                    .updatedAt(OffsetDateTime.now())
+                    .build();
+            return usuarioRepo.save(novoUsuario);
+        });
 
         LocalPlace l = localRepo.findById(req.localId()).orElse(null);
         if (l == null) return ResponseEntity.badRequest().body("Local inválido");

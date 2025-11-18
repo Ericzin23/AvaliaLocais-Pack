@@ -1,13 +1,50 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, ScrollView, Platform, Alert, ActionSheetIOS } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, ScrollView, Platform, Alert, ActionSheetIOS, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
+import * as ImagePicker from 'expo-image-picker';
 import { theme } from '../theme';
 
 export default function DetailsScreen({ route, navigation }){
   const { place } = route.params;
   const lat = place?.lat || place?.geometry?.location?.lat || 0;
   const lng = place?.lng || place?.geometry?.location?.lng || 0;
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Permita o acesso à câmera para tirar fotos do local.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setCapturedPhoto(result.assets[0].uri);
+      Alert.alert('Foto capturada!', 'Agora você pode avaliar o local com sua foto.');
+    }
+  };
+
+  const goToReview = () => {
+    if (!capturedPhoto) {
+      Alert.alert(
+        'Foto necessária',
+        'Tire uma foto do local antes de avaliar.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Tirar Foto', onPress: takePhoto },
+        ]
+      );
+      return;
+    }
+    navigation.navigate('Review', { place, photoUri: capturedPhoto });
+  };
 
   const goMaps = () => {
     const label = encodeURIComponent(place.name);
@@ -113,7 +150,23 @@ export default function DetailsScreen({ route, navigation }){
 
       {/* Action Buttons - Fixed at bottom */}
       <View style={s.actionsContainer}>
-        <TouchableOpacity style={s.btnPrimary} onPress={() => navigation.navigate('Review', { place })}>
+        {capturedPhoto && (
+          <View style={s.photoPreview}>
+            <Image source={{ uri: capturedPhoto }} style={s.photoPreviewImage} />
+            <TouchableOpacity style={s.photoRetake} onPress={takePhoto}>
+              <Text style={s.photoRetakeText}>📷 Tirar outra</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <TouchableOpacity 
+          style={[s.btnPhoto, capturedPhoto && s.btnPhotoTaken]} 
+          onPress={takePhoto}
+        >
+          <Text style={s.btnPhotoText}>
+            {capturedPhoto ? '✓ Foto capturada' : '📷 Tirar foto do local'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.btnPrimary} onPress={goToReview}>
           <Text style={s.btnPrimaryText}>⭐ Avaliar Local</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.btnSecondary} onPress={goMaps}>
@@ -234,6 +287,42 @@ const s = StyleSheet.create({
     backgroundColor: '#0a0a12',
     borderTopWidth: 1,
     borderTopColor: '#1e1e2e',
+  },
+  photoPreview: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  photoPreviewImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#22C55E',
+  },
+  photoRetake: {
+    marginTop: 8,
+  },
+  photoRetakeText: {
+    color: '#9ca3af',
+    fontSize: 12,
+  },
+  btnPhoto: {
+    backgroundColor: '#1e1e2e',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#2a2a3a',
+  },
+  btnPhotoTaken: {
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderColor: '#22C55E',
+  },
+  btnPhotoText: {
+    color: '#9ca3af',
+    fontSize: 14,
+    fontWeight: '600',
   },
   btnPrimary: {
     backgroundColor: '#7C3AED',
