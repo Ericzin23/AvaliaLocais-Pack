@@ -4,8 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
-
-const BASE_URL = 'http://192.168.0.112:8080';
+import { BASE_URL } from '../services/api';
 
 export default function ShareScreen({ route }){
   const { review } = route.params;

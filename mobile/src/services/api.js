@@ -1,9 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+
+export const BASE_URL = Constants.expoConfig?.extra?.API_URL || 'http://192.168.0.115:8080';
 
 export const API = axios.create({
-  baseURL: 'http://192.168.0.112:8080', // IP do seu PC
-  timeout: 15000,
+  baseURL: BASE_URL, // IP do seu PC
+  timeout: 25000,
 });
 
 // Interceptor para adicionar X-User-Email automaticamente em todas as requisições
