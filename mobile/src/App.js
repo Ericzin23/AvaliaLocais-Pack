@@ -3,6 +3,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -16,9 +17,28 @@ const Tabs = createBottomTabNavigator();
 
 function TabsNav() {
   return (
-    <Tabs.Navigator screenOptions={{headerShown:false}}>
-      <Tabs.Screen name="Home" component={HomeScreen} />
-      <Tabs.Screen name="Profile" component={ProfileScreen} />
+    <Tabs.Navigator 
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'Início') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Perfil') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#22C55E',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: {
+          backgroundColor: '#0F172A',
+          borderTopColor: '#1E293B',
+        },
+      })}
+    >
+      <Tabs.Screen name="Início" component={HomeScreen} />
+      <Tabs.Screen name="Perfil" component={ProfileScreen} />
     </Tabs.Navigator>
   );
 }

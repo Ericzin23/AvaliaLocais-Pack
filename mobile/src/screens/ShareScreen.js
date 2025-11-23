@@ -13,14 +13,6 @@ export default function ShareScreen({ route }){
   // Usar a foto tirada pelo usuário com URL completa
   const photoUrl = review.fotoUrl ? `${BASE_URL}${review.fotoUrl}` : null;
 
-  // Categorias de exemplo (você pode pegar dos ratings da avaliação)
-  const categories = [
-    { label: '🍽 Comida', value: 4.9 },
-    { label: '😋 Sabor', value: 5.0 },
-    { label: '🧑‍🍳 Atendimento', value: 4.7 },
-    { label: '💸 Preço', value: 4.0 },
-  ];
-
   const share = async () => {
     try{
       const uri = await cardRef.current.capture();
@@ -70,15 +62,14 @@ export default function ShareScreen({ route }){
                   </View>
                 </View>
 
-                {/* Categorias */}
-                <View style={s.categoriesContainer}>
-                  {categories.map((cat) => (
-                    <View key={cat.label} style={s.categoryRow}>
-                      <Text style={s.categoryLabel}>{cat.label}</Text>
-                      <Text style={s.categoryValue}>{cat.value.toFixed(1)}</Text>
-                    </View>
-                  ))}
-                </View>
+                {/* Comentário */}
+                {review.comentario ? (
+                  <View style={s.commentContainer}>
+                    <Text style={s.commentText} numberOfLines={4}>
+                      "{review.comentario}"
+                    </Text>
+                  </View>
+                ) : null}
 
                 {/* Footer */}
                 <View style={s.footer}>
@@ -119,15 +110,14 @@ export default function ShareScreen({ route }){
                   </View>
                 </View>
 
-                {/* Categorias */}
-                <View style={s.categoriesContainer}>
-                  {categories.map((cat) => (
-                    <View key={cat.label} style={s.categoryRow}>
-                      <Text style={s.categoryLabel}>{cat.label}</Text>
-                      <Text style={s.categoryValue}>{cat.value.toFixed(1)}</Text>
-                    </View>
-                  ))}
-                </View>
+                {/* Comentário */}
+                {review.comentario ? (
+                  <View style={s.commentContainer}>
+                    <Text style={s.commentText} numberOfLines={4}>
+                      "{review.comentario}"
+                    </Text>
+                  </View>
+                ) : null}
 
                 {/* Footer */}
                 <View style={s.footer}>
@@ -237,25 +227,18 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 8,
   },
-  categoriesContainer: {
+  commentContainer: {
     backgroundColor: 'rgba(15, 23, 42, 0.92)',
     borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  categoryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  categoryLabel: {
-    color: '#D1D5DB',
-    fontSize: 13,
-  },
-  categoryValue: {
-    color: '#22C55E',
-    fontSize: 13,
-    fontWeight: '600',
+  commentText: {
+    color: '#E5E7EB',
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   footer: {
     alignItems: 'center',

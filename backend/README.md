@@ -1,5 +1,32 @@
 # AvaliaLocais Backend (Spring Boot, Java 21)
 
+## 🎯 Novidade: Sistema Analítico Completo! 📊
+
+**NOVO!** Sistema de análise de dados com relacionamentos fortes e consultas otimizadas.
+
+👉 **[Ver Sistema Analítico](README-ANALYTICS.md)** ← COMECE AQUI!
+
+### Quick Start Analytics:
+```powershell
+cd backend
+.\install-analytics.ps1
+```
+
+**Recursos:**
+- ✅ 50+ consultas prontas (top locais, stats de usuários, etc)
+- ✅ Busca por email: `CALL sp_get_usuario_stats_by_email('email@exemplo.com')`
+- ✅ Top rankings automáticos
+- ✅ Dados sempre atualizados (triggers)
+- ✅ Integração Spring Boot pronta
+
+**Documentação:**
+- 📖 [README-ANALYTICS.md](README-ANALYTICS.md) - Início rápido
+- 📚 [GUIA-ANALYTICS.md](GUIA-ANALYTICS.md) - Guia completo
+- 🔍 [CONSULTAS-RAPIDAS.sql](CONSULTAS-RAPIDAS.sql) - 50+ queries
+- 📑 [INDICE-COMPLETO.md](INDICE-COMPLETO.md) - Índice de tudo
+
+---
+
 ## Requisitos
 - Java 21
 - Maven 3.9+
