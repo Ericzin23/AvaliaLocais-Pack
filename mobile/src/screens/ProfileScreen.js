@@ -25,7 +25,14 @@ export default function ProfileScreen({ navigation }) {
 
   useEffect(() => {
     loadUserData();
-  }, []);
+
+    // Recarregar dados quando a tela receber foco
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadUserData();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const loadUserData = async () => {
     try {
@@ -57,8 +64,8 @@ export default function ProfileScreen({ navigation }) {
 
   const loadStats = async (email) => {
     try {
-      // Buscar avaliações do usuário
-      const avaliacoesResponse = await API.get(`/avaliacoes/usuario/${email}`);
+      // Buscar avaliações do usuário usando endpoint com email
+      const avaliacoesResponse = await API.get(`/avaliacoes/usuario/email/${encodeURIComponent(email)}`);
       const avaliacoes = avaliacoesResponse.data || [];
 
       // Calcular estatísticas
@@ -89,6 +96,14 @@ export default function ProfileScreen({ navigation }) {
       });
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
+      // Define stats vazias em caso de erro
+      setStats({
+        totalAvaliacoes: 0,
+        notaMedia: 0,
+        locaisUnicos: 0,
+        categoriaFavorita: 'Nenhuma',
+        avaliacoesPorCategoria: {},
+      });
     }
   };
 

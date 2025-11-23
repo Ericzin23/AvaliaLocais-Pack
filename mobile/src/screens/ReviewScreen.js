@@ -211,18 +211,41 @@ export default function ReviewScreen({ route, navigation }) {
 
       console.log('Enviando avaliação:', payload);
       const response = await API.post('/avaliacoes', payload);
-      console.log('Resposta:', response.data);
+      console.log('✅ Avaliação salva com sucesso! ID:', response.data.id);
 
-      navigation.replace('Share', {
-        review: { 
-          nota: overallRating, 
-          comentario: comment, 
-          place,
-          fotoUrl: fotoUrl, // Passar a foto para ShareScreen
-        },
-      });
+      // Mostrar mensagem de sucesso
+      Alert.alert(
+        '✅ Avaliação registrada!',
+        'Sua avaliação foi salva com sucesso.',
+        [
+          {
+            text: 'Compartilhar',
+            onPress: () => {
+              navigation.navigate('Share', {
+                review: { 
+                  nota: overallRating, 
+                  comentario: comment, 
+                  place,
+                  fotoUrl: fotoUrl,
+                  avaliacaoId: response.data.id,
+                },
+              });
+            },
+          },
+          {
+            text: 'Voltar ao início',
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main' }],
+              });
+            },
+            style: 'cancel',
+          },
+        ]
+      );
     } catch (e) {
-      console.error('Erro ao enviar avaliação:', e);
+      console.error('❌ Erro ao enviar avaliação:', e);
       console.error('Detalhes:', e.response?.data);
       Alert.alert(
         'Erro',

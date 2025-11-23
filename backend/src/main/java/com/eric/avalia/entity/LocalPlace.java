@@ -1,11 +1,13 @@
 package com.eric.avalia.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.OffsetDateTime;
 
 @Entity @Table(name="local")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class LocalPlace {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

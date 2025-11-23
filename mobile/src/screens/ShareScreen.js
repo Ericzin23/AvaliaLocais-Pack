@@ -6,7 +6,7 @@ import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../services/api';
 
-export default function ShareScreen({ route }){
+export default function ShareScreen({ route, navigation }){
   const { review } = route.params;
   const cardRef = useRef();
 
@@ -17,9 +17,22 @@ export default function ShareScreen({ route }){
     try{
       const uri = await cardRef.current.capture();
       await Sharing.shareAsync(uri);
+      // Após compartilhar, volta para Home
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
     }catch(e){ 
       Alert.alert('Erro', 'Não foi possível compartilhar.'); 
     }
+  }
+
+  const skipShare = () => {
+    // Volta para a tela principal (tabs)
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Main' }],
+    });
   }
 
   return (
@@ -130,11 +143,20 @@ export default function ShareScreen({ route }){
           )}
         </ViewShot>
 
-        {/* Botão de compartilhar */}
-        <TouchableOpacity style={s.shareButton} onPress={share}>
-          <Ionicons name="share-outline" size={18} color="#020617" />
-          <Text style={s.shareButtonText}>Compartilhar no Instagram</Text>
-        </TouchableOpacity>
+        {/* Botões de ação */}
+        <View style={s.actionButtons}>
+          <TouchableOpacity style={s.shareButton} onPress={share}>
+            <Ionicons name="share-outline" size={18} color="#020617" />
+            <Text style={s.shareButtonText}>Compartilhar no Instagram</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={s.skipButton} 
+            onPress={skipShare}
+          >
+            <Text style={s.skipButtonText}>Não compartilhar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   )
@@ -255,10 +277,15 @@ const s = StyleSheet.create({
     color: '#22C55E',
     fontWeight: '600',
   },
-  shareButton: {
+  actionButtons: {
     marginTop: 20,
+    width: '100%',
+    gap: 12,
+  },
+  shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#22C55E',
     borderRadius: 999,
     paddingHorizontal: 24,
@@ -274,5 +301,14 @@ const s = StyleSheet.create({
     color: '#020617',
     fontSize: 15,
     fontWeight: '700',
+  },
+  skipButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  skipButtonText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

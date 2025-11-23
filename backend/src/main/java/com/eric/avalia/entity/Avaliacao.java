@@ -18,6 +18,7 @@ public class Avaliacao {
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
     @JoinColumn(name="local_id", nullable=false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private LocalPlace local;
 
     @Column(nullable=false)

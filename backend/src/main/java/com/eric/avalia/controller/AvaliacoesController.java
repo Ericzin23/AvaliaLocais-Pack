@@ -66,6 +66,15 @@ public class AvaliacoesController {
         return repo.findByUsuario(u);
     }
 
+    @GetMapping("/usuario/email/{email}")
+    public ResponseEntity<?> porUsuarioEmail(@PathVariable String email) {
+        Usuario u = usuarioRepo.findByEmail(email).orElse(null);
+        if (u == null) {
+            return ResponseEntity.ok(List.of()); // Retorna lista vazia se usuário não existe
+        }
+        return ResponseEntity.ok(repo.findByUsuario(u));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> editar(@PathVariable Long id, @Valid @RequestBody ReviewRequest req,
                                     @RequestHeader("X-User-Email") String email) {
