@@ -1,150 +1,465 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { theme } from '../theme';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Animatable from 'react-native-animatable';
+import * as Haptics from 'expo-haptics';
 import { register } from '../services/api';
+import FloatingParticles from '../components/FloatingParticles';
+import AnimatedWave from '../components/AnimatedWave';
+import AnimatedInput from '../components/AnimatedInput';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
+import GenderSelector from '../components/GenderSelector';
+import DatePickerInput from '../components/DatePickerInput';
+import GlowingButton from '../components/GlowingButton';
+import AnimatedCheckmark from '../components/AnimatedCheckmark';
 
-const ALLOWED_DOMAINS = ['gmail.com','outlook.com','hotmail.com','yahoo.com']; 
-// Dica: quer aceitar qualquer domínio? Troque pela linha abaixo:
-// const ALLOWED_DOMAINS = null; // aceita qualquer e-mail
+const ALLOWED_DOMAINS = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
-function isEmailValid(email){
-  if(!email) return false;
+function isEmailValid(email) {
+  if (!email) return false;
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if(!re.test(email)) return false;
-  if (ALLOWED_DOMAINS && ALLOWED_DOMAINS.length){
+  if (!re.test(email)) return false;
+  if (ALLOWED_DOMAINS && ALLOWED_DOMAINS.length) {
     const part = email.split('@')[1]?.toLowerCase();
-    if(!part || !ALLOWED_DOMAINS.includes(part)) return false;
+    if (!part || !ALLOWED_DOMAINS.includes(part)) return false;
   }
   return true;
 }
-function passwordScore(pwd){
-  if(!pwd) return 0;
-  const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-  return strong.test(pwd) ? 3 : pwd.length>=6 ? 2 : 1;
-}
-function passwordIssues(p){
-  return [
-    { ok: p?.length>=8, text:'mínimo 8 caracteres' },
-    { ok: /[A-Z]/.test(p||''), text:'1 letra maiúscula' },
-    { ok: /\d/.test(p||''),    text:'1 número' },
-    { ok: /[^A-Za-z0-9]/.test(p||''), text:'1 símbolo' }
-  ];
+
+function isPasswordStrong(password) {
+  if (!password || password.length < 8) return false;
+  return (
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
 }
 
-export default function RegisterScreen({ navigation }){
-  const [nome,setNome]           = useState('');
-  const [email,setEmail]         = useState('');
-  const [nasc,setNasc]           = useState('2000-01-01');
-  const [genero,setGenero]       = useState('Outro'); // Masculino | Feminino | Outro
-  const [senha,setSenha]         = useState('');
-  const [submitting,setSubmitting]=useState(false);
-  const [errors,setErrors]       = useState({});
+export default function RegisterScreen({ navigation }) {
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('2000-01-01');
+  const [genero, setGenero] = useState('Outro');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const score = useMemo(()=>passwordScore(senha),[senha]);
-  const crit  = useMemo(()=>passwordIssues(senha),[senha]);
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const formOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(formOpacity, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  useEffect(() => {
+    let completedFields = 0;
+    if (nome.trim()) completedFields++;
+    if (isEmailValid(email)) completedFields++;
+    if (dataNascimento) completedFields++;
+    if (genero) completedFields++;
+    if (isPasswordStrong(senha)) completedFields++;
+    if (senha && senha === confirmarSenha) completedFields++;
+
+    const progress = completedFields / 6;
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [nome, email, dataNascimento, genero, senha, confirmarSenha]);
+
+  const clearError = (field) => {
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
   const validate = () => {
     const e = {};
-    if(!nome?.trim()) e.nome = 'Informe seu nome completo';
-    if(!isEmailValid(email)) {
+    
+    if (!nome?.trim()) {
+      e.nome = 'Nome completo é obrigatório';
+    } else if (nome.trim().length < 3) {
+      e.nome = 'Nome deve ter pelo menos 3 caracteres';
+    }
+
+    if (!isEmailValid(email)) {
       e.email = ALLOWED_DOMAINS
-        ? `E-mail inválido. Use um domínio suportado (${ALLOWED_DOMAINS.join(', ')}).`
+        ? `Use um e-mail válido (${ALLOWED_DOMAINS.join(', ')})`
         : 'E-mail inválido';
     }
-    if(!nasc?.match(/^\d{4}-\d{2}-\d{2}$/)) e.nasc = 'Use o formato YYYY-MM-DD';
-    if(score<3) e.senha = 'Senha fraca. Atenda a todos os critérios.';
-    if(!['Masculino','Feminino','Outro'].includes(genero)) e.genero = 'Escolha uma opção';
+
+    if (!dataNascimento?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      e.dataNascimento = 'Selecione uma data válida';
+    } else {
+      const age = new Date().getFullYear() - parseInt(dataNascimento.split('-')[0]);
+      if (age < 13) {
+        e.dataNascimento = 'Você deve ter pelo menos 13 anos';
+      }
+    }
+
+    if (!['Masculino', 'Feminino', 'Outro'].includes(genero)) {
+      e.genero = 'Selecione uma opção';
+    }
+
+    if (!isPasswordStrong(senha)) {
+      e.senha = 'Senha não atende aos requisitos de segurança';
+    }
+
+    if (senha !== confirmarSenha) {
+      e.confirmarSenha = 'As senhas não coincidem';
+    }
+
     setErrors(e);
-    return Object.keys(e).length===0;
+    return Object.keys(e).length === 0;
   };
 
   const onRegister = async () => {
-    if(!validate()) return;
-    try{
+    if (!validate()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
+    try {
       setSubmitting(true);
-      const payload = { nome, email, senha, dataNascimento:nasc, genero };
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      const payload = { nome, email, senha, dataNascimento, genero };
       await register(payload);
-      Alert.alert('Sucesso','Conta criada! Faça login.');
-      navigation.goBack();
-    }catch(e){
-      const msg = typeof e?.response?.data === 'string'
-        ? e.response.data
-        : e?.response?.data?.message || e?.message || 'Não foi possível cadastrar.';
-      // Se o backend mandar {code, field, message}, mapeie pro campo:
+
+      setShowSuccess(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      setTimeout(() => {
+        navigation.goBack();
+      }, 2000);
+    } catch (e) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const msg =
+        typeof e?.response?.data === 'string'
+          ? e.response.data
+          : e?.response?.data?.message || e?.message || 'Não foi possível cadastrar.';
+      
       const field = e?.response?.data?.field;
-      if(field) setErrors(prev => ({...prev, [field]: msg}));
-      else Alert.alert('Erro', msg);
-    }finally{
+      if (field) {
+        setErrors((prev) => ({ ...prev, [field]: msg }));
+      } else {
+        Alert.alert('Erro ao cadastrar', msg);
+      }
+    } finally {
       setSubmitting(false);
     }
   };
 
-  const Chip = ({label, active, onPress}) => (
-    <TouchableOpacity onPress={onPress} style={[s.chip, active && s.chipActive]}>
-      <Text style={[s.chipText, active && s.chipTextActive]}>{label}</Text>
-    </TouchableOpacity>
-  );
+  const progressColor = progressAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ['#EF4444', '#F59E0B', '#22C55E'],
+  });
+
+  if (showSuccess) {
+    return (
+      <View style={s.successContainer}>
+        <LinearGradient
+          colors={['#0f0c29', '#302b63', '#24243e']}
+          style={StyleSheet.absoluteFill}
+        />
+        <FloatingParticles count={30} />
+        
+        <Animatable.View animation="bounceIn" duration={800} style={s.successContent}>
+          <AnimatedCheckmark visible={true} size={120} />
+          <Text style={s.successTitle}>Conta criada com sucesso!</Text>
+          <Text style={s.successSubtitle}>Redirecionando para o login...</Text>
+        </Animatable.View>
+      </View>
+    );
+  }
 
   return (
     <View style={s.container}>
-      <Text style={s.title}>Criar conta</Text>
+      <LinearGradient
+        colors={['#0f0c29', '#302b63', '#24243e']}
+        style={StyleSheet.absoluteFill}
+      />
 
-      <TextInput style={s.input} placeholder='Nome completo' placeholderTextColor="#888"
-        value={nome} onChangeText={(t)=>{setNome(t); setErrors(p=>({...p,nome:undefined}))}} />
-      {errors.nome && <Text style={s.err}>{errors.nome}</Text>}
+      <FloatingParticles count={15} />
+      <AnimatedWave />
 
-      <TextInput style={s.input} placeholder='E-mail' placeholderTextColor="#888" autoCapitalize='none'
-        keyboardType='email-address' value={email}
-        onChangeText={(t)=>{setEmail(t); setErrors(p=>({...p,email:undefined}))}} />
-      {errors.email && <Text style={s.err}>{errors.email}</Text>}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={s.keyboardView}
+      >
+        <ScrollView
+          style={s.scrollView}
+          contentContainerStyle={s.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Animated.View style={{ opacity: formOpacity }}>
+            <Animatable.View animation="fadeInDown" delay={200} style={s.header}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  navigation.goBack();
+                }}
+                style={s.backButton}
+              >
+                <Text style={s.backIcon}>←</Text>
+              </TouchableOpacity>
+              
+              <Text style={s.title}>Criar Conta</Text>
+              <Text style={s.subtitle}>Preencha os dados abaixo</Text>
+            </Animatable.View>
 
-      <TextInput style={s.input} placeholder='Data de nascimento (YYYY-MM-DD)' placeholderTextColor="#888"
-        value={nasc} onChangeText={(t)=>{setNasc(t); setErrors(p=>({...p,nasc:undefined}))}} />
-      {errors.nasc && <Text style={s.err}>{errors.nasc}</Text>}
+            <Animatable.View animation="fadeInUp" delay={400} style={s.progressContainer}>
+              <View style={s.progressBar}>
+                <Animated.View
+                  style={[
+                    s.progressFill,
+                    {
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0%', '100%'],
+                      }),
+                      backgroundColor: progressColor,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={s.progressText}>
+                {Math.round(progressAnim._value * 100)}% completo
+              </Text>
+            </Animatable.View>
 
-      <Text style={s.label}>Gênero</Text>
-      <View style={s.row}>
-        {['Masculino','Feminino','Outro'].map(opt => (
-          <Chip key={opt} label={opt} active={genero===opt} onPress={()=>{setGenero(opt); setErrors(p=>({...p,genero:undefined}))}} />
-        ))}
-      </View>
-      {errors.genero && <Text style={s.err}>{errors.genero}</Text>}
+            <Animatable.View animation="fadeInUp" delay={600}>
+              <AnimatedInput
+                icon="👤"
+                placeholder="Nome completo"
+                value={nome}
+                onChangeText={(t) => {
+                  setNome(t);
+                  clearError('nome');
+                }}
+                error={errors.nome}
+                autoCapitalize="words"
+                maxLength={50}
+              />
 
-      <TextInput style={s.input} placeholder='Senha forte' placeholderTextColor="#888" secureTextEntry
-        value={senha} onChangeText={(t)=>{setSenha(t); setErrors(p=>({...p,senha:undefined}))}} />
-      <View style={s.barWrap}>
-        <View style={[s.bar, score>=1 && {backgroundColor:'#EF4444'}]} />
-        <View style={[s.bar, score>=2 && {backgroundColor:'#F59E0B'}]} />
-        <View style={[s.bar, score>=3 && {backgroundColor:'#22C55E'}]} />
-      </View>
-      <View style={{marginBottom:8}}>
-        {crit.map((c,i)=><Text key={i} style={{color:c.ok? '#22C55E':'#aaa', fontSize:12}}>• {c.text}</Text>)}
-      </View>
-      {errors.senha && <Text style={s.err}>{errors.senha}</Text>}
+              <AnimatedInput
+                icon="📧"
+                placeholder="E-mail"
+                value={email}
+                onChangeText={(t) => {
+                  setEmail(t.toLowerCase());
+                  clearError('email');
+                }}
+                error={errors.email}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
 
-      <TouchableOpacity disabled={submitting} style={[s.btn, submitting && {opacity:.6}]} onPress={onRegister}>
-        <Text style={s.btnText}>{submitting?'Enviando...':'Cadastrar'}</Text>
-      </TouchableOpacity>
+              <DatePickerInput
+                value={dataNascimento}
+                onChange={(date) => {
+                  setDataNascimento(date);
+                  clearError('dataNascimento');
+                }}
+                error={errors.dataNascimento}
+              />
 
-      <Text style={{color:'#7f8', marginTop:12, fontSize:12}}>
-        Dica: se aparecer “Falha de conexão”, verifique se o backend em http://SEU-IP:8080 está rodando e se o arquivo mobile/src/services/api.js aponta para ele.
-      </Text>
+              <GenderSelector
+                value={genero}
+                onChange={(g) => {
+                  setGenero(g);
+                  clearError('genero');
+                }}
+                error={errors.genero}
+              />
+
+              <AnimatedInput
+                icon="🔒"
+                placeholder="Senha"
+                value={senha}
+                onChangeText={(t) => {
+                  setSenha(t);
+                  clearError('senha');
+                }}
+                error={errors.senha}
+                secureTextEntry
+              />
+
+              <PasswordStrengthMeter password={senha} />
+
+              <AnimatedInput
+                icon="🔐"
+                placeholder="Confirmar senha"
+                value={confirmarSenha}
+                onChangeText={(t) => {
+                  setConfirmarSenha(t);
+                  clearError('confirmarSenha');
+                }}
+                error={errors.confirmarSenha}
+                secureTextEntry
+              />
+
+              <Animatable.View animation="fadeIn" delay={800}>
+                <Text style={s.terms}>
+                  Ao criar uma conta, você concorda com nossos{' '}
+                  <Text style={s.termsLink}>Termos de Uso</Text> e{' '}
+                  <Text style={s.termsLink}>Política de Privacidade</Text>
+                </Text>
+              </Animatable.View>
+
+              <Animatable.View animation="fadeInUp" delay={1000}>
+                <GlowingButton
+                  title={submitting ? 'Criando conta...' : 'Criar Conta'}
+                  onPress={onRegister}
+                  style={s.submitButton}
+                />
+              </Animatable.View>
+
+              <Animatable.View animation="fadeIn" delay={1200}>
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    navigation.goBack();
+                  }}
+                  style={s.loginLink}
+                >
+                  <Text style={s.loginText}>
+                    Já tem uma conta?{' '}
+                    <Text style={s.loginTextBold}>Fazer login</Text>
+                  </Text>
+                </TouchableOpacity>
+              </Animatable.View>
+            </Animatable.View>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container:{flex:1, backgroundColor:theme.colors.bg, padding:24},
-  title:{color:theme.colors.text, fontSize:22, marginBottom:12},
-  label:{color:'#ccc', marginTop:6, marginBottom:4},
-  row:{flexDirection:'row', gap:8, marginBottom:8, flexWrap:'wrap'},
-  input:{backgroundColor:theme.colors.card, color:theme.colors.text, padding:14, borderRadius:12, marginBottom:6},
-  err:{color:theme.colors.danger, marginBottom:6},
-  btn:{backgroundColor:theme.colors.primary, padding:14, borderRadius:12, alignItems:'center', marginTop:10},
-  btnText:{color:'#fff', fontWeight:'bold'},
-  barWrap:{flexDirection:'row', gap:6, marginVertical:8},
-  bar:{flex:1, height:6, backgroundColor:'#333', borderRadius:4},
-  chip:{paddingVertical:6, paddingHorizontal:10, borderRadius:20, backgroundColor:'#1a1a22'},
-  chipActive:{backgroundColor:theme.colors.primary},
-  chipText:{color:'#aaa'}, chipTextActive:{color:'#fff'},
+  container: {
+    flex: 1,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  backIcon: {
+    color: '#fff',
+    fontSize: 24,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 16,
+  },
+  progressContainer: {
+    marginBottom: 24,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  progressText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    textAlign: 'right',
+  },
+  terms: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  termsLink: {
+    color: '#6366f1',
+    fontWeight: '600',
+  },
+  submitButton: {
+    marginBottom: 16,
+    width: '100%',
+  },
+  loginLink: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  loginText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+  },
+  loginTextBold: {
+    color: '#ec4899',
+    fontWeight: 'bold',
+  },
+  successContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successContent: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  successTitle: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 24,
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 16,
+    marginTop: 12,
+    textAlign: 'center',
+  },
 });
