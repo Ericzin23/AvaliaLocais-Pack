@@ -11,6 +11,7 @@ import DetailsScreen from './screens/DetailsScreen';
 import ReviewScreen from './screens/ReviewScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import ShareScreen from './screens/ShareScreen';
+import TrendsScreen from './screens/TrendsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -24,6 +25,8 @@ function TabsNav() {
           let iconName;
           if (route.name === 'Início') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Tendências') {
+            iconName = focused ? 'trending-up' : 'trending-up-outline';
           } else if (route.name === 'Perfil') {
             iconName = focused ? 'person' : 'person-outline';
           }
@@ -38,6 +41,7 @@ function TabsNav() {
       })}
     >
       <Tabs.Screen name="Início" component={HomeScreen} />
+      <Tabs.Screen name="Tendências" component={TrendsScreen} />
       <Tabs.Screen name="Perfil" component={ProfileScreen} />
     </Tabs.Navigator>
   );
